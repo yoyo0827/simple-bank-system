@@ -12,6 +12,7 @@ services:
     ports:
       - "6000:5432" # 外部 6000 對應容器內部 5432
     volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - db-data:/var/lib/postgresql/data
   app:
     build: .
