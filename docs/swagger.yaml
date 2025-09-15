@@ -1,0 +1,24 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: A simple banking system implemented in Go (with standard library ServeMux)
+  title: Simple Bank System API
+  version: "1.0"
+paths:
+  /hello:
+    get:
+      description: Returns a hello message
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Hello
+      tags:
+      - hello
+swagger: "2.0"
