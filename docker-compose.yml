@@ -12,6 +12,7 @@ services:
     ports:
       - "6000:5432" # 外部 6000 對應容器內部 5432
     volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - db-data:/var/lib/postgresql/data
   app:
     build: .
@@ -29,6 +30,17 @@ services:
       - "${SERVER_PORT}:8080"
     depends_on:
       - db
-
+  db-test:
+    image: postgres:16
+    container_name: pg-test
+    profiles: [ "test" ] # 設定此服務僅在 test profile 下啟動
+    ports:
+      - "6001:5432"
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: testDB
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
 volumes:
   db-data:

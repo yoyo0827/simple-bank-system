@@ -20,14 +20,14 @@ func InitDatabase() {
 	password := os.Getenv("DB_PASSWORD")
 	dbname := os.Getenv("DB_NAME")
 
-	connStr := fmt.Sprintf(
+	connectStr := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname,
 	)
 
 	var err error
 	for i := 0; i < 10; i++ { // 1s一次，最多重試 10 次
-		DB, err = sql.Open("postgres", connStr)
+		DB, err = sql.Open("postgres", connectStr)
 		if err == nil {
 			if pingErr := DB.Ping(); pingErr == nil {
 				log.Println(" Database connected")
