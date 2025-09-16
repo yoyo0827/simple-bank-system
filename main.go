@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	// godotenv
 	"github.com/joho/godotenv"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/yoyo0827/simple-bank-system/internal/api"
@@ -17,10 +16,11 @@ import (
 
 // @title Simple Bank System API
 // @version 1.0
-// @description A simple banking system implemented in Go (with standard library ServeMux)
+// @description A simple banking system implemented in Go with RESTful APIs.
 // @host localhost:8080
 // @BasePath /
 func main() {
+	// 本機開發使用 .env
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Failed to load .env file: %v", err)
 	}
@@ -37,8 +37,9 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /accounts", handler.CreateAccount)
 	mux.HandleFunc("GET /accounts/{id}", handler.FindAccount)
-	mux.HandleFunc("POST /accounts/{id}/transactions", handler.Transaction)
-	mux.HandleFunc("PUT /accounts/transfer", handler.Transfer)
+	mux.HandleFunc("POST /accounts/{id}/transactions", handler.CreateTransaction)
+	mux.HandleFunc("PUT /accounts/transfer", handler.CreateTransfer)
+	mux.HandleFunc("GET /accounts/{id}/transactions", handler.FindTransactionDetail)
 
 	// Swagger UI
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)

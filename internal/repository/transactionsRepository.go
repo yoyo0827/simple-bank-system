@@ -12,17 +12,26 @@ type TransactionRepository struct {
 
 // 寫入交易紀錄
 func (r *TransactionRepository) InsertTransactions(accountID string, tx *domain.Transaction) error {
-	query := `INSERT INTO transactions (account_id, type, amount) VALUES ($1, $2, $3) RETURNING id`
-	return r.DB.QueryRow(query, accountID, tx.Type, tx.Amount).Scan(&tx.ID)
+	query := `INSERT INTO transactions (account_id, type, amount, ref_id, description) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+	return r.DB.QueryRow(query, accountID, tx.Type, tx.Amount, tx.RefID, tx.Description).Scan(&tx.ID)
 }
 
 // 根據 ID 查詢交易紀錄
-func (r *TransactionRepository) FindById(id string) (*domain.Transaction, error) {
-	query := `SELECT id, account_id, type, amount, created_at FROM transactions WHERE id = $1`
-	tx := &domain.Transaction{}
-	err := r.DB.QueryRow(query, id).Scan(&tx.ID, &tx.Name, &tx.Type, &tx.Amount, &tx.CreatedAt)
+func (r *TransactionRepository) FindById(id string) ([]*domain.Transaction, error) {
+	query := `SELECT t.id, a.name, t.type, t.amount,t.ref_id,COALESCE(t.description, ''),t.created_at FROM transactions t JOIN accounts a ON t.account_id = a.id WHERE t.account_id = $1`
+	rows, err := r.DB.Query(query, id)
 	if err != nil {
 		return nil, err
 	}
-	return tx, nil
+	defer rows.Close()
+
+	var transactions []*domain.Transaction
+	for rows.Next() {
+		tx := &domain.Transaction{}
+		if err := rows.Scan(&tx.ID, &tx.Name, &tx.Type, &tx.Amount, &tx.RefID, &tx.Description, &tx.CreatedAt); err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, tx)
+	}
+	return transactions, nil
 }

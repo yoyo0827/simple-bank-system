@@ -1,14 +1,5 @@
 basePath: /
 definitions:
-  domain.Account:
-    properties:
-      balance:
-        type: number
-      id:
-        type: string
-      name:
-        type: string
-    type: object
   request.CreateAccountRequest:
     properties:
       balance:
@@ -21,10 +12,27 @@ definitions:
       amount:
         type: number
     type: object
+  request.TransferRequest:
+    properties:
+      amount:
+        type: number
+      from_id:
+        type: string
+      to_id:
+        type: string
+    type: object
+  response.ApiResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+      status:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
-  description: A simple banking system implemented in Go (with standard library ServeMux)
+  description: A simple banking system implemented in Go with RESTful APIs.
   title: Simple Bank System API
   version: "1.0"
 paths:
@@ -46,10 +54,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Account'
+            $ref: '#/definitions/response.ApiResponse'
       summary: 建立帳號
       tags:
-      - accounts
+      - 帳號相關
   /accounts/{id}:
     get:
       consumes:
@@ -67,11 +75,31 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Account'
+            $ref: '#/definitions/response.ApiResponse'
       summary: 查詢帳號
       tags:
-      - accounts
+      - 帳號相關
   /accounts/{id}/transactions:
+    get:
+      consumes:
+      - application/json
+      description: 取得指定交易的詳細資訊
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ApiResponse'
+      summary: 取得交易紀錄
+      tags:
+      - 交易相關
     post:
       consumes:
       - application/json
@@ -94,35 +122,30 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Account'
-      summary: 進行交易
+            $ref: '#/definitions/response.ApiResponse'
+      summary: 交易
       tags:
-      - transactions
+      - 交易相關
   /accounts/transfer:
-    put:
+    post:
       consumes:
       - application/json
       description: 由指定帳號進行轉帳操作
       parameters:
-      - description: Account ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Transaction Info
+      - description: Transfer Info
         in: body
         name: transaction
         required: true
         schema:
-          $ref: '#/definitions/request.TransactionRequest'
+          $ref: '#/definitions/request.TransferRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/domain.Account'
-      summary: 進行轉帳
+            $ref: '#/definitions/response.ApiResponse'
+      summary: 轉帳
       tags:
-      - transactions
+      - 交易相關
 swagger: "2.0"

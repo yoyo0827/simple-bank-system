@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -15,7 +16,7 @@ type AccountService struct {
 	TransactionRepository *repository.TransactionRepository
 }
 
-// 建立帳號
+// 查詢帳號
 func (s *AccountService) FindAccount(id string) (*domain.Account, error) {
 	acc, err := s.AccountRepository.FindById(id)
 	if err != nil {
@@ -38,10 +39,10 @@ func (s *AccountService) CreateAccount(name string, balance float64) (*domain.Ac
 }
 
 // 交易
-func (s *AccountService) Transaction(id string, req *request.TransactionRequest) (*domain.Transaction, error) {
+func (s *AccountService) Transaction(id string, req *request.TransactionRequest) (string, error) {
 	acc, err := s.AccountRepository.FindById(id)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	var txType int // 1=提款, 2=存款
 	if req.Amount.IsNegative() {
@@ -53,13 +54,13 @@ func (s *AccountService) Transaction(id string, req *request.TransactionRequest)
 	// 更新帳號餘額
 	newBalance := acc.Balance.Add(req.Amount)
 	if newBalance.IsNegative() {
-		return nil, errors.New("insufficient funds, cannot withdraw more than the current balance")
+		return "", errors.New("insufficient funds, cannot withdraw more than the current balance")
 	}
 
 	err = s.AccountRepository.UpdateBalance(id, newBalance)
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	refID := uuid.New().String()
 	// 寫入交易紀錄
@@ -71,10 +72,11 @@ func (s *AccountService) Transaction(id string, req *request.TransactionRequest)
 	}
 	err = s.TransactionRepository.InsertTransactions(acc.ID, tx)
 	if err != nil {
-		return nil, err
+		log.Fatalf("Failed to insert transaction: %v", err)
+		return "", err
 	}
 
-	return tx, err
+	return refID, nil
 }
 
 // 轉帳
@@ -96,7 +98,11 @@ func (s *AccountService) Transfer(req *request.TransferRequest) (string, error) 
 	}
 	refID := uuid.New().String()
 	// 更新帳號餘額
+
 	fromAccNewBalance := fromAcc.Balance.Sub(amount)
+	if fromAccNewBalance.IsNegative() {
+		return "", errors.New("insufficient funds, cannot transfer more than the current balance")
+	}
 	toAccNewBalance := toAcc.Balance.Add(amount)
 
 	err = s.AccountRepository.UpdateBalance(fromAcc.ID, fromAccNewBalance)
@@ -107,22 +113,26 @@ func (s *AccountService) Transfer(req *request.TransferRequest) (string, error) 
 	if err != nil {
 		return "", err
 	}
+	fromDescription := "Transfer to " + toAcc.Name
+	toDescription := "Transfer from " + fromAcc.Name
 	// 寫入交易紀錄
 	fromAccTx := &domain.Transaction{
-		Name:   fromAcc.Name,
-		Type:   1, // 提款
-		Amount: amount,
-		RefID:  refID,
+		Name:        fromAcc.Name,
+		Type:        1, // 提款
+		Amount:      amount,
+		RefID:       refID,
+		Description: fromDescription,
 	}
 	err = s.TransactionRepository.InsertTransactions(fromAcc.ID, fromAccTx)
 	if err != nil {
 		return "", err
 	}
 	toAccTx := &domain.Transaction{
-		Name:   toAcc.Name,
-		Type:   2, // 存款
-		Amount: amount,
-		RefID:  refID,
+		Name:        toAcc.Name,
+		Type:        2, // 存款
+		Amount:      amount,
+		RefID:       refID,
+		Description: toDescription,
 	}
 	err = s.TransactionRepository.InsertTransactions(toAcc.ID, toAccTx)
 	if err != nil {
@@ -130,4 +140,13 @@ func (s *AccountService) Transfer(req *request.TransferRequest) (string, error) 
 	}
 
 	return refID, nil
+}
+
+// 查詢帳號交易紀錄
+func (s *AccountService) FindAccountTransactions(id string) ([]*domain.Transaction, error) {
+	transactions, err := s.TransactionRepository.FindById(id)
+	if err != nil {
+		return nil, err
+	}
+	return transactions, nil
 }

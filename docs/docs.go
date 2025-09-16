@@ -25,7 +25,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "帳號相關"
                 ],
                 "summary": "建立帳號",
                 "parameters": [
@@ -43,14 +43,14 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Account"
+                            "$ref": "#/definitions/response.ApiResponse"
                         }
                     }
                 }
             }
         },
         "/accounts/transfer": {
-            "put": {
+            "post": {
                 "description": "由指定帳號進行轉帳操作",
                 "consumes": [
                     "application/json"
@@ -59,24 +59,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "transactions"
+                    "交易相關"
                 ],
-                "summary": "進行轉帳",
+                "summary": "轉帳",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Account ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Transaction Info",
+                        "description": "Transfer Info",
                         "name": "transaction",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.TransactionRequest"
+                            "$ref": "#/definitions/request.TransferRequest"
                         }
                     }
                 ],
@@ -84,7 +77,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Account"
+                            "$ref": "#/definitions/response.ApiResponse"
                         }
                     }
                 }
@@ -100,7 +93,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "accounts"
+                    "帳號相關"
                 ],
                 "summary": "查詢帳號",
                 "parameters": [
@@ -116,13 +109,43 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Account"
+                            "$ref": "#/definitions/response.ApiResponse"
                         }
                     }
                 }
             }
         },
         "/accounts/{id}/transactions": {
+            "get": {
+                "description": "取得指定交易的詳細資訊",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "交易相關"
+                ],
+                "summary": "取得交易紀錄",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ApiResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "對指定帳號進行存款或提款操作，金額為正數表示存款，負數表示提款",
                 "consumes": [
@@ -132,9 +155,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "transactions"
+                    "交易相關"
                 ],
-                "summary": "進行交易",
+                "summary": "交易",
                 "parameters": [
                     {
                         "type": "integer",
@@ -157,7 +180,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/domain.Account"
+                            "$ref": "#/definitions/response.ApiResponse"
                         }
                     }
                 }
@@ -165,20 +188,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "domain.Account": {
-            "type": "object",
-            "properties": {
-                "balance": {
-                    "type": "number"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "request.CreateAccountRequest": {
             "type": "object",
             "properties": {
@@ -197,6 +206,32 @@ const docTemplate = `{
                     "type": "number"
                 }
             }
+        },
+        "request.TransferRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "from_id": {
+                    "type": "string"
+                },
+                "to_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ApiResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`
@@ -208,7 +243,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Simple Bank System API",
-	Description:      "A simple banking system implemented in Go (with standard library ServeMux)",
+	Description:      "A simple banking system implemented in Go with RESTful APIs.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
