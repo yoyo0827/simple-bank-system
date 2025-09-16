@@ -7,7 +7,7 @@ RUN go mod download
 # 複製專案程式碼
 COPY . .
 # 編譯成可執行檔
-RUN go build -o bank-server ./cmd/server
+RUN go build -o bank-server .
 FROM debian:bookworm-slim
 WORKDIR /app
 # 複製編譯好的 binary

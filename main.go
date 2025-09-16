@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/joho/godotenv"
-	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/yoyo0827/simple-bank-system/internal/api"
 	"github.com/yoyo0827/simple-bank-system/internal/config"
 	"github.com/yoyo0827/simple-bank-system/internal/repository"
+	"github.com/yoyo0827/simple-bank-system/internal/router"
 	"github.com/yoyo0827/simple-bank-system/internal/service"
 
 	_ "github.com/yoyo0827/simple-bank-system/docs" // swagger docs
@@ -21,28 +21,25 @@ import (
 // @BasePath /
 func main() {
 	// 本機開發使用 .env
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Failed to load .env file: %v", err)
+	if err := godotenv.Load(); err == nil {
+		log.Println("loaded .env file")
 	}
 	// 初始化 DB
 	config.InitDatabase()
 	defer config.DB.Close()
 
-	// 初始化三層
-	accountRepo := &repository.AccountRepository{DB: config.DB}
-	transactionRepo := &repository.TransactionRepository{DB: config.DB}
-	svc := &service.AccountService{AccountRepository: accountRepo, TransactionRepository: transactionRepo}
-	handler := &api.ApiHandler{AccountService: svc}
-	// 啟動簡單的 server
-	mux := http.NewServeMux()
-	mux.HandleFunc("POST /accounts", handler.CreateAccount)
-	mux.HandleFunc("GET /accounts/{id}", handler.FindAccount)
-	mux.HandleFunc("POST /accounts/{id}/transactions", handler.CreateTransaction)
-	mux.HandleFunc("PUT /accounts/transfer", handler.CreateTransfer)
-	mux.HandleFunc("GET /accounts/{id}/transactions", handler.FindTransactionDetail)
+	// 初始化 Handler & Service & Repository
+	accountRepo := &repository.AccountRepository{}
+	transactionRepo := &repository.TransactionRepository{}
+	service := &service.AccountService{
+		DB:                    config.DB,
+		AccountRepository:     accountRepo,
+		TransactionRepository: transactionRepo,
+	}
+	handler := &api.ApiHandler{AccountService: service}
+	// 啟動 server
+	mux := router.NewRouter(handler)
 
-	// Swagger UI
-	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 	log.Println("Server running on :8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal(err)

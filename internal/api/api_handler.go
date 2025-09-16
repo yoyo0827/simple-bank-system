@@ -76,7 +76,7 @@ func (h *ApiHandler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 		response.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	refID, err := h.AccountService.Transaction(id, &req)
+	refID, err := h.AccountService.CreateTransaction(id, &req)
 	if err != nil {
 		response.WriteError(w, http.StatusBadRequest, err.Error())
 		return
@@ -109,7 +109,7 @@ func (h *ApiHandler) CreateTransfer(w http.ResponseWriter, r *http.Request) {
 
 // TransactionDetail godoc
 // @Summary 取得交易紀錄
-// @Description 取得指定帳號的所有交易資訊
+// @Description 取得指定交易的詳細資訊
 // @Tags 交易相關
 // @Accept json
 // @Produce json
