@@ -1,7 +1,4 @@
 
----
-
-````markdown
 # Simple Bank System
 
 本專案為 **Golang** 實作的簡易 bank system，提供 **RESTful API**，實現基本的帳務功能，並透過 **PostgreSQL** 進行持久化儲存。系統設計支援 原子性交易，確保交易過程中發生異常時會回滾。同時提供 單元測試 (Unit Test) 與 整合測試 (Integration Test)，並可透過 **Docker-Compose** 快速部署。
@@ -19,7 +16,6 @@
 - 提供 **Unit Test** 與 **Integration Test**
 - 使用 **Docker-Compose** 快速部署
 
-
 ---
 
 ##  環境需求
@@ -35,7 +31,7 @@
 ```bash
 git clone https://github.com/yoyo0827/simple-bank-system.git
 cd simple-bank-system
-````
+```
 
 ### 2.使用 Docker-Compose 啟動服務
 
@@ -140,11 +136,5 @@ simple-bank-system/
  └── go.mod                      # Go Modules 設定
 ```
 
----
 
-## 📌 備註
-
-* 本專案僅作為練習與展示用途
-
-```
 
